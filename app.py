@@ -86,7 +86,7 @@ def inference(query):
     #Drop SK_ID_PREV and SK_ID_CURR
     query_bureau_previous = query_bureau_previous.drop(columns = ['SK_ID_CURR'])
     
-    query_numerical = query_bureau_previous.select_dtypes(exclude=object).drop(columns=['TARGET'])
+    query_numerical = query_bureau_previous.select_dtypes(exclude=object)
     query_categorical = query_bureau_previous.select_dtypes(include=object)
 
     query_numerical_imputed = imputer.transform(query_numerical)
