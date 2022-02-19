@@ -1,9 +1,11 @@
 #Import libraries
 import pandas as pd
 import numpy as np
-from scipy.stats import uniform
-from pycaret.classification import *
 import pickle
+from sklearn.linear_model import LogisticRegression
+from sklearn.impute import SimpleImputer
+from sklearn.preprocessing import StandardScaler
+from sklearn.preprocessing import OneHotEncoder
 import streamlit as st
 
 #Function named dataframe_optimizer is defined. This will reduce space consumption by dataframes.
@@ -41,13 +43,21 @@ bureau_numerical_merge = dataframe_optimizer(pd.read_csv('bureau_numerical_merge
 bureau_categorical_merge = dataframe_optimizer(pd.read_csv('bureau_categorical_merge.csv'))
 previous_numerical_merge = dataframe_optimizer(pd.read_csv('previous_numerical_merge.csv'))
 previous_categorical_merge = dataframe_optimizer(pd.read_csv('previous_categorical_merge.csv'))
-filename = open('columns_train_data.pkl', 'rb')
-columns = pickle.load(filename)
-filename.close()
-#tuned_model = load_model('model')
 filename1 = open('model.pkl', 'rb')
-tuned_model = pickle.load(filename1)
+model = pickle.load(filename1)
 filename1.close()
+filename2 = open('imputer.pkl', 'rb')
+imputer = pickle.load(filename2)
+filename2.close()
+filename3 = open('scaler.pkl', 'rb')
+scaler = pickle.load(filename3)
+filename3.close()
+filename4 = open('imputer_constant.pkl', 'rb')
+imputer_constant = pickle.load(filename4)
+filename4.close()
+filename5 = open('ohe.pkl', 'rb')
+ohe = pickle.load(filename5)
+filename5.close()
 
 #Define a function to create a pipeline for prediction
 def inference(query):  
@@ -75,20 +85,25 @@ def inference(query):
     print('The shape of query_bureau and previous_application data merged: ', query_bureau_previous.shape)  
     #Drop SK_ID_PREV and SK_ID_CURR
     query_bureau_previous = query_bureau_previous.drop(columns = ['SK_ID_CURR'])
-    missing_columns = set(list(columns)) - set(['TARGET']) - set(list(query_bureau_previous.columns))
-    if len(missing_columns) != 0:
-      print("Please enter values for all columns")
-    else:
-      predictions = predict_model(tuned_model, query_bureau_previous)
-      return predictions
+    
+    query_numerical = train_data.select_dtypes(exclude=object).drop(columns=['TARGET'])
+    query_categorical = train_data.select_dtypes(include=object)
 
+    query_numerical_imputed = imputer.transform(query_numerical)
+    query_numerical_imputed_scaled = scaler.transform(query_numerical_imputed)
+    query_categorical_imputed = imputer_constant.transform(query_categorical)
+    query_categorical_imputed_ohe = ohe.transform(query_categorical_imputed)
+    query_data = np.concatenate((query_numerical_imputed_scaled, query_categorical_imputed_ohe.toarray()), axis = 1)
+
+    predictions = model.predict(query_data)
+    return predictions
+    
 def main():
     uploaded_file = st.file_uploader("Choose a file")       
     if uploaded_file is not None:
         query = dataframe_optimizer(pd.read_csv(uploaded_file))
         query_prediction = inference(query)
-        dataframe = pd.read_csv(query_prediction)
-        st.write(dataframe)
+        st.write(query_prediction)
 
 if __name__=='__main__':
     main()
