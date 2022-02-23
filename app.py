@@ -120,20 +120,23 @@ def main():
     uploaded_file = st.file_uploader("Choose a query data file")       
     if uploaded_file is not None:
         query = dataframe_optimizer(pd.read_csv(uploaded_file))
-        columns_query = list(query.columns)
-        if columns_query == columns_input:
-            query_prediction = inference(query)
-            query_data_with_prediction = query.copy()
-            query_data_with_prediction['LABEL'] = query_prediction
-            conditions = [(query_data_with_prediction['LABEL'] == 0), (query_data_with_prediction['LABEL'] == 1)]
-            values = ['NO', 'YES']
-            query_data_with_prediction['DEFAULT TENDENCY'] = np.select(conditions, values)
-            query_data_with_prediction = query_data_with_prediction.drop(columns = ['LABEL'])
-            st.write('Default tendency of a loan applicant can be seen under column titled DEFAULT TENDENCY')
-            st.write(query_data_with_prediction)
-            st.download_button("Download query data with predictions as CSV", query_data_with_prediction, "prediction.csv", key='text/csv')
-        else:
-          print("Query columns do not match the columns of required format as given in template. Please upload query data in the given format.")
+        query_prediction = inference(query)
+        st.write(query_prediction)        
+        
+        #columns_query = list(query.columns)
+        #if columns_query == columns_input:
+        #    query_prediction = inference(query)
+        #    query_data_with_prediction = query.copy()
+        #    query_data_with_prediction['LABEL'] = query_prediction
+        #    conditions = [(query_data_with_prediction['LABEL'] == 0), (query_data_with_prediction['LABEL'] == 1)]
+        #    values = ['NO', 'YES']
+        #    query_data_with_prediction['DEFAULT TENDENCY'] = np.select(conditions, values)
+        #    query_data_with_prediction = query_data_with_prediction.drop(columns = ['LABEL'])
+        #    st.write('Default tendency of a loan applicant can be seen under column titled DEFAULT TENDENCY')
+        #    st.write(query_data_with_prediction)
+        #    st.download_button("Download query data with predictions as CSV", query_data_with_prediction, "prediction.csv", key='text/csv')
+        #else:
+        #  print("Query columns do not match the columns of required format as given in template. Please upload query data in the given format.")
 
 if __name__=='__main__':
     main()
