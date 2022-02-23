@@ -112,9 +112,7 @@ def inference(query):
     return predictions
     
 def main():
-    st.sidebar.write("This predictor is based on a Kaggle competition. 
-                     This competition and datasets can be accessed from https://www.kaggle.com/c/home-credit-default-risk/overview. 
-                     The source code for this predictor can be accessed from https://github.com/Saurabha-Daa/test.")
+    st.sidebar.write("This predictor is based on a Kaggle competition. This competition and datasets can be accessed from https://www.kaggle.com/c/home-credit-default-risk/overview. The source code for this predictor can be accessed from https://github.com/Saurabha-Daa/test.")
     st.write('LOAN DEFAULT TENDENCY PREDICTOR')
     st.download_button(
          label="Download template for query data",
