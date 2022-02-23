@@ -115,7 +115,7 @@ def inference(query):
 def main():
     st.sidebar.write("This predictor is based on a Kaggle competition. This competition and datasets can be accessed from https://www.kaggle.com/c/home-credit-default-risk/overview. The source code for this predictor can be accessed from https://github.com/Saurabha-Daa/test.")
     st.write('LOAN DEFAULT TENDENCY PREDICTOR')
-    template = query_template.df.to_csv().encode('utf-8')
+    template = query_template.to_csv().encode('utf-8')
     st.download_button("Download template for query data", template, "query_template.csv", key='text/csv')
     uploaded_file = st.file_uploader("Choose a query data file")       
     if uploaded_file is not None:
