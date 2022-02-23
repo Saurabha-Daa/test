@@ -114,11 +114,8 @@ def inference(query):
 def main():
     st.sidebar.write("This predictor is based on a Kaggle competition. This competition and datasets can be accessed from https://www.kaggle.com/c/home-credit-default-risk/overview. The source code for this predictor can be accessed from https://github.com/Saurabha-Daa/test.")
     st.write('LOAN DEFAULT TENDENCY PREDICTOR')
-    st.download_button(
-         label="Download template for query data",
-         data=csv,
-         file_name='query_template.csv',
-         mime='text/csv',)
+    with open("query_template.csv") as template:
+        st.download_button(label="Download template for query data", template, "query_template.csv")
     uploaded_file = st.file_uploader("Choose a query data file")       
     if uploaded_file is not None:
         query = dataframe_optimizer(pd.read_csv(uploaded_file))
@@ -132,11 +129,7 @@ def main():
             query_data_with_prediction['DEFAULT TENDENCY'] = np.select(conditions, values)
             st.write('Default tendency of a loan applicant can be seen under column titled DEFAULT TENDENCY')
             st.write(query_data_with_prediction.drop(columns = ['LABEL']).style.hide_index())
-            st.download_button(
-                 label="Download query data with predictions as CSV",
-                 data=csv,
-                 file_name='query_data_with_prediction.csv',
-                 mime='text/csv',)
+            st.download_button(label="Download query data with predictions as CSV", query_data_with_prediction, "prediction.csv")
         else:
           print("Query columns do not match the columns of required format as given in template. Please upload query data in the given format.")
 
