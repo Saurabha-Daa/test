@@ -129,10 +129,9 @@ def main():
             values = ['NO', 'YES']
             query_data_with_prediction['DEFAULT TENDENCY'] = np.select(conditions, values)
             query_data_with_prediction = query_data_with_prediction.drop(columns = ['LABEL'])
-            predictions = query_data_with_prediction.to_csv().encode('utf-8')
             st.write('Default tendency of a loan applicant can be seen under column titled DEFAULT TENDENCY')
             st.write(query_data_with_prediction)
-            st.download_button("Download query data with predictions as CSV", predictions.csv, "prediction.csv", key='text/csv')
+            st.download_button("Download query data with predictions as CSV", query_data_with_prediction, "prediction.csv", key='text/csv')
         else:
           print("Query columns do not match the columns of required format as given in template. Please upload query data in the given format.")
 
