@@ -43,7 +43,7 @@ bureau_numerical_merge = dataframe_optimizer(pd.read_csv('bureau_numerical_merge
 bureau_categorical_merge = dataframe_optimizer(pd.read_csv('bureau_categorical_merge.csv'))
 previous_numerical_merge = dataframe_optimizer(pd.read_csv('previous_numerical_merge.csv'))
 previous_categorical_merge = dataframe_optimizer(pd.read_csv('previous_categorical_merge.csv'))
-#query_template = pd.read_csv('query_template.csv')
+query_template = pd.read_csv('query_template.csv')
 filename = open('columns_input.pkl', 'rb')
 columns_input = pickle.load(filename)
 filename.close()
@@ -113,30 +113,30 @@ def inference(query):
     return predictions
     
 def main():
-    #st.sidebar.write("This predictor is based on a Kaggle competition. This competition and datasets can be accessed from https://www.kaggle.com/c/home-credit-default-risk/overview. The source code for this predictor can be accessed from https://github.com/Saurabha-Daa/test.")
-    #st.write('LOAN DEFAULT TENDENCY PREDICTOR')
-    #template = query_template.to_csv().encode('utf-8')
-    #st.download_button("Download template for query data", template, "query_template.csv", key='text/csv')
+    st.sidebar.write("This predictor is based on a Kaggle competition. This competition and datasets can be accessed from https://www.kaggle.com/c/home-credit-default-risk/overview. The source code for this predictor can be accessed from https://github.com/Saurabha-Daa/test.")
+    st.write('LOAN DEFAULT TENDENCY PREDICTOR')
+    template = query_template.to_csv().encode('utf-8')
+    st.download_button("Download template for query data", template, "query_template.csv", key='text/csv')
     uploaded_file = st.file_uploader("Choose a query data file")       
     if uploaded_file is not None:
-        query = dataframe_optimizer(pd.read_csv(uploaded_file))
-        query_prediction = inference(query)
-        st.write(query_prediction)        
+        #query = dataframe_optimizer(pd.read_csv(uploaded_file))
+        #query_prediction = inference(query)
+        #st.write(query_prediction)        
         
-        #columns_query = list(query.columns)
-        #if columns_query == columns_input:
-        #    query_prediction = inference(query)
-        #    query_data_with_prediction = query.copy()
-        #    query_data_with_prediction['LABEL'] = query_prediction
-        #    conditions = [(query_data_with_prediction['LABEL'] == 0), (query_data_with_prediction['LABEL'] == 1)]
-        #    values = ['NO', 'YES']
-        #    query_data_with_prediction['DEFAULT TENDENCY'] = np.select(conditions, values)
-        #    query_data_with_prediction = query_data_with_prediction.drop(columns = ['LABEL'])
-        #    st.write('Default tendency of a loan applicant can be seen under column titled DEFAULT TENDENCY')
-        #    st.write(query_data_with_prediction)
-        #    st.download_button("Download query data with predictions as CSV", query_data_with_prediction, "prediction.csv", key='text/csv')
-        #else:
-        #  print("Query columns do not match the columns of required format as given in template. Please upload query data in the given format.")
+        columns_query = list(query.columns)
+        if columns_query == columns_input:
+            query_data_with_prediction = query.copy()
+            query_prediction = inference(query)            
+            query_data_with_prediction['LABEL'] = query_prediction
+            conditions = [(query_data_with_prediction['LABEL'] == 0), (query_data_with_prediction['LABEL'] == 1)]
+            values = ['NO', 'YES']
+            query_data_with_prediction['DEFAULT TENDENCY'] = np.select(conditions, values)
+            query_data_with_prediction = query_data_with_prediction.drop(columns = ['LABEL'])
+            st.write('Default tendency of a loan applicant can be seen under column titled DEFAULT TENDENCY')
+            st.write(query_data_with_prediction)
+            st.download_button("Download query data with predictions as CSV", query_data_with_prediction, "prediction.csv", key='text/csv')
+        else:
+          print("Query columns do not match the columns of required format as given in template. Please upload query data in the given format.")
 
 if __name__=='__main__':
     main()
