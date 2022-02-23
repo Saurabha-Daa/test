@@ -119,10 +119,9 @@ def main():
     st.download_button("Download template for query data", template, "query_template.csv", key='text/csv')
     uploaded_file = st.file_uploader("Choose a query data file")       
     if uploaded_file is not None:
-        #query = dataframe_optimizer(pd.read_csv(uploaded_file))
+        query = dataframe_optimizer(pd.read_csv(uploaded_file))
         #query_prediction = inference(query)
         #st.write(query_prediction)        
-        
         columns_query = list(query.columns)
         if columns_query == columns_input:
             query_data_with_prediction = query.copy()
