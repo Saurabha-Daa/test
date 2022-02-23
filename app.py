@@ -103,8 +103,8 @@ def inference(query):
     query_numerical_imputed_scaled_df = pd.DataFrame(data = query_numerical_imputed_scaled_df, columns = columns_numerical)
 
     query_data = imputer_constant.transform(query_categorical)
-    query_data = ohe.transform(query_categorical_imputed_ohe_df)
-    query_data = pd.DataFrame(data = query_categorical_imputed_ohe_df.toarray(), columns = columns_ohe)
+    query_data = ohe.transform(query_data)
+    query_data = pd.DataFrame(data = query_data.toarray(), columns = columns_ohe)
 
     query_data = pd.concat([query_numerical_imputed_scaled_df, query_data], axis = 1)
     query_data = query_data[selected_features]
