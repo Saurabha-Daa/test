@@ -72,13 +72,13 @@ filename7.close()
 #Define a function to create a pipeline for prediction
 def inference(query): 
     #Add columns titled DEBT_INCOME_RATIO, LOAN_VALUE_RATIO & LOAN_INCOME_RATIO to a copy of query data
-    query_with_additinal_features = query.copy()    
-    query_with_additinal_features['DEBT_INCOME_RATIO'] = query_with_additinal_features['AMT_ANNUITY']/query_with_additinal_features['AMT_INCOME_TOTAL']
-    query_with_additinal_features['LOAN_VALUE_RATIO'] = query_with_additinal_features['AMT_CREDIT']/query_with_additinal_features['AMT_GOODS_PRICE']
-    query_with_additinal_features['LOAN_INCOME_RATIO'] = query_with_additinal_features['AMT_CREDIT']/query_with_additinal_features['AMT_INCOME_TOTAL']
-    
+    #query_with_additinal_features = query.copy()    
+    query['DEBT_INCOME_RATIO'] = query['AMT_ANNUITY']/query['AMT_INCOME_TOTAL']
+    query['LOAN_VALUE_RATIO'] = query['AMT_CREDIT']/query['AMT_GOODS_PRICE']
+    query['LOAN_INCOME_RATIO'] = query['AMT_CREDIT']/query['AMT_INCOME_TOTAL']
+
     #Merge numerical features from bureau to query data
-    query_bureau = query_with_additinal_features.merge(bureau_numerical_merge, on='SK_ID_CURR', how='left', suffixes=('', '_BUREAU'))
+    query_bureau = query.merge(bureau_numerical_merge, on='SK_ID_CURR', how='left', suffixes=('', '_BUREAU'))
     #Merge categorical features from bureau to query data
     query_bureau = query_bureau.merge(bureau_categorical_merge, on='SK_ID_CURR', how='left', suffixes=('', '_BUREAU'))
     #Drop SK_ID_BUREAU
@@ -91,23 +91,23 @@ def inference(query):
     query_bureau_previous = query_bureau_previous.drop(columns = ['SK_ID_PREV'])  
     #Drop SK_ID_PREV
     query_bureau_previous = query_bureau_previous.drop(columns = ['SK_ID_CURR'])
-    
+
     query_numerical = query_bureau_previous.select_dtypes(exclude=object)
     query_categorical = query_bureau_previous.select_dtypes(include=object)
-    
+
     columns_numerical = query_numerical.columns
     columns_categorical = query_categorical.columns
 
-    query_numerical_imputed = imputer.transform(query_numerical)
-    query_numerical_imputed_scaled = scaler.transform(query_numerical_imputed)
-    query_numerical_imputed_scaled_df = pd.DataFrame(data = query_numerical_imputed_scaled, columns = columns_numerical)
+    query_numerical_imputed_scaled_df = imputer.transform(query_numerical)
+    query_numerical_imputed_scaled_df = scaler.transform(query_numerical_imputed_scaled_df)
+    query_numerical_imputed_scaled_df = pd.DataFrame(data = query_numerical_imputed_scaled_df, columns = columns_numerical)
 
-    query_categorical_imputed = imputer_constant.transform(query_categorical)
-    query_categorical_imputed_ohe = ohe.transform(query_categorical_imputed)
-    query_categorical_imputed_ohe_df = pd.DataFrame(data = query_categorical_imputed_ohe.toarray(), columns = list(columns_ohe))
+    query_data = imputer_constant.transform(query_categorical)
+    query_data = ohe.transform(query_categorical_imputed_ohe_df)
+    query_data = pd.DataFrame(data = query_categorical_imputed_ohe_df.toarray(), columns = columns_ohe)
 
-    query_data_all_features = pd.concat((query_numerical_imputed_scaled_df, query_categorical_imputed_ohe_df), axis = 1)
-    query_data = query_data_all_features[selected_features]
+    query_data = pd.concat([query_numerical_imputed_scaled_df, query_data], axis = 1)
+    query_data = query_data[selected_features]
 
     predictions = model.predict(query_data)
     return predictions
