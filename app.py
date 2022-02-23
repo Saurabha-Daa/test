@@ -43,6 +43,9 @@ bureau_numerical_merge = dataframe_optimizer(pd.read_csv('bureau_numerical_merge
 bureau_categorical_merge = dataframe_optimizer(pd.read_csv('bureau_categorical_merge.csv'))
 previous_numerical_merge = dataframe_optimizer(pd.read_csv('previous_numerical_merge.csv'))
 previous_categorical_merge = dataframe_optimizer(pd.read_csv('previous_categorical_merge.csv'))
+filename = open('columns_input.pkl', 'rb')
+columns_input = pickle.load(filename)
+filename.close()
 filename1 = open('model.pkl', 'rb')
 model = pickle.load(filename1)
 filename1.close()
@@ -58,52 +61,86 @@ filename4.close()
 filename5 = open('ohe.pkl', 'rb')
 ohe = pickle.load(filename5)
 filename5.close()
+filename6 = open('selected_features.pkl', 'rb')
+selected_features = pickle.load(filename6)
+filename6.close()
+filename7 = open('columns_ohe.pkl', 'rb')
+columns_ohe = pickle.load(filename7)
+filename7.close()
 
 #Define a function to create a pipeline for prediction
-def inference(query):  
-    #Add columns titled DEBT_INCOME_RATIO to application_train
-    query['DEBT_INCOME_RATIO'] = query['AMT_ANNUITY']/query['AMT_INCOME_TOTAL']
-    #Add columns titled LOAN_VALUE_RATIO to application_train
-    query['LOAN_VALUE_RATIO'] = query['AMT_CREDIT']/query['AMT_GOODS_PRICE']
-    #Add columns titled LOAN_INCOME_RATIO to application_train
-    query['LOAN_INCOME_RATIO'] = query['AMT_CREDIT']/query['AMT_INCOME_TOTAL']
-    #Merge numerical features from bureau to query
-    query_bureau = query.merge(bureau_numerical_merge, on='SK_ID_CURR', how='left', suffixes=('', '_BUREAU'))
-    #Merge categorical features from bureau to query
+def inference(query): 
+    #Add columns titled DEBT_INCOME_RATIO, LOAN_VALUE_RATIO & LOAN_INCOME_RATIO to a copy of query data
+    query_with_additinal_features = query.copy()    
+    query_with_additinal_features['DEBT_INCOME_RATIO'] = query_with_additinal_features['AMT_ANNUITY']/query_with_additinal_features['AMT_INCOME_TOTAL']
+    query_with_additinal_features['LOAN_VALUE_RATIO'] = query_with_additinal_features['AMT_CREDIT']/query_with_additinal_features['AMT_GOODS_PRICE']
+    query_with_additinal_features['LOAN_INCOME_RATIO'] = query_with_additinal_features['AMT_CREDIT']/query_with_additinal_features['AMT_INCOME_TOTAL']
+    
+    #Merge numerical features from bureau to query data
+    query_bureau = query_with_additinal_features.merge(bureau_numerical_merge, on='SK_ID_CURR', how='left', suffixes=('', '_BUREAU'))
+    #Merge categorical features from bureau to query data
     query_bureau = query_bureau.merge(bureau_categorical_merge, on='SK_ID_CURR', how='left', suffixes=('', '_BUREAU'))
     #Drop SK_ID_BUREAU
-    query_bureau = query_bureau.drop(columns = ['SK_ID_BUREAU'])
-    #Shape of query and bureau data combined
-    print('The shape of query and bureau data merged: ', query_bureau.shape)  
+    query_bureau = query_bureau.drop(columns = ['SK_ID_BUREAU'])  
     #Merge numerical features from previous_application to query_bureau
     query_bureau_previous = query_bureau.merge(previous_numerical_merge, on='SK_ID_CURR', how='left', suffixes=('', '_PREVIOUS'))
     #Merge categorical features from previous_application to query_bureau
     query_bureau_previous = query_bureau_previous.merge(previous_categorical_merge, on='SK_ID_CURR', how='left', suffixes=('', '_PREVIOUS'))
-    #Drop SK_ID_PREV and SK_ID_CURR
-    query_bureau_previous = query_bureau_previous.drop(columns = ['SK_ID_PREV'])
-    #Shape of query_bureau and previous_application data combined
-    print('The shape of query_bureau and previous_application data merged: ', query_bureau_previous.shape)  
-    #Drop SK_ID_PREV and SK_ID_CURR
+    #Drop SK_ID_PREV
+    query_bureau_previous = query_bureau_previous.drop(columns = ['SK_ID_PREV'])  
+    #Drop SK_ID_PREV
     query_bureau_previous = query_bureau_previous.drop(columns = ['SK_ID_CURR'])
     
     query_numerical = query_bureau_previous.select_dtypes(exclude=object)
     query_categorical = query_bureau_previous.select_dtypes(include=object)
+    
+    columns_numerical = query_numerical.columns
+    columns_categorical = query_categorical.columns
 
     query_numerical_imputed = imputer.transform(query_numerical)
     query_numerical_imputed_scaled = scaler.transform(query_numerical_imputed)
+    query_numerical_imputed_scaled_df = pd.DataFrame(data = query_numerical_imputed_scaled, columns = columns_numerical)
+
     query_categorical_imputed = imputer_constant.transform(query_categorical)
     query_categorical_imputed_ohe = ohe.transform(query_categorical_imputed)
-    query_data = np.concatenate((query_numerical_imputed_scaled, query_categorical_imputed_ohe.toarray()), axis = 1)
+    query_categorical_imputed_ohe_df = pd.DataFrame(data = query_categorical_imputed_ohe.toarray(), columns = list(columns_ohe))
+
+    query_data_all_features = pd.concat((query_numerical_imputed_scaled_df, query_categorical_imputed_ohe_df), axis = 1)
+    query_data = query_data_all_features[selected_features]
 
     predictions = model.predict(query_data)
     return predictions
     
 def main():
-    uploaded_file = st.file_uploader("Choose a file")       
+    st.sidebar.write("This predictor is based on a Kaggle competition. 
+                     This competition and datasets can be accessed from https://www.kaggle.com/c/home-credit-default-risk/overview. 
+                     The source code for this predictor can be accessed from https://github.com/Saurabha-Daa/test.")
+    st.write('LOAN DEFAULT TENDENCY PREDICTOR')
+    st.download_button(
+         label="Download template for query data",
+         data=csv,
+         file_name='query_template.csv',
+         mime='text/csv',)
+    uploaded_file = st.file_uploader("Choose a query data file")       
     if uploaded_file is not None:
         query = dataframe_optimizer(pd.read_csv(uploaded_file))
-        query_prediction = inference(query)
-        st.write(query_prediction)
+        columns_query = list(query.columns)
+        if columns_query == columns_input:
+            query_prediction = inference(query)
+            query_data_with_prediction = query.copy()
+            query_data_with_prediction['LABEL'] = query_prediction
+            conditions = [(query_data_with_prediction['LABEL'] == 0), (query_data_with_prediction['LABEL'] == 1)]
+            values = ['NO', 'YES']
+            query_data_with_prediction['DEFAULT TENDENCY'] = np.select(conditions, values)
+            st.write('Default tendency of a loan applicant can be seen under column titled 'DEFAULT TENDENCY'')
+            st.write(query_data_with_prediction.drop(columns = ['LABEL']).style.hide_index())
+            st.download_button(
+                 label="Download query data with predictions as CSV",
+                 data=csv,
+                 file_name='query_data_with_prediction.csv',
+                 mime='text/csv',)
+        else:
+          print("Query columns do not match the columns of required format as given in template. Please upload query data in the given format.")
 
 if __name__=='__main__':
     main()
