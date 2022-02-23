@@ -115,8 +115,8 @@ def main():
     st.sidebar.write("This predictor is based on a Kaggle competition. This competition and datasets can be accessed from https://www.kaggle.com/c/home-credit-default-risk/overview. The source code for this predictor can be accessed from https://github.com/Saurabha-Daa/test.")
     st.write('LOAN DEFAULT TENDENCY PREDICTOR')
     #with open("query_template.csv") as template:
-    #query_template = query_template.csv
-    st.download_button("Download template for query data", query_template.csv, "query_template.csv", key='text/csv')
+    query_template = query_template.csv
+    st.download_button("Download template for query data", query_template, "query_template.csv", key='text/csv')
     uploaded_file = st.file_uploader("Choose a query data file")       
     if uploaded_file is not None:
         query = dataframe_optimizer(pd.read_csv(uploaded_file))
