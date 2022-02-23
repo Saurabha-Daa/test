@@ -43,6 +43,7 @@ bureau_numerical_merge = dataframe_optimizer(pd.read_csv('bureau_numerical_merge
 bureau_categorical_merge = dataframe_optimizer(pd.read_csv('bureau_categorical_merge.csv'))
 previous_numerical_merge = dataframe_optimizer(pd.read_csv('previous_numerical_merge.csv'))
 previous_categorical_merge = dataframe_optimizer(pd.read_csv('previous_categorical_merge.csv'))
+query_template = pd.read_csv('query_template.csv')
 filename = open('columns_input.pkl', 'rb')
 columns_input = pickle.load(filename)
 filename.close()
@@ -113,8 +114,7 @@ def inference(query):
     
 def main():
     st.sidebar.write("This predictor is based on a Kaggle competition. This competition and datasets can be accessed from https://www.kaggle.com/c/home-credit-default-risk/overview. The source code for this predictor can be accessed from https://github.com/Saurabha-Daa/test.")
-    st.write('LOAN DEFAULT TENDENCY PREDICTOR')
-    query_template = pd.read_csv('query_template.csv')
+    st.write('LOAN DEFAULT TENDENCY PREDICTOR')    
     st.download_button("Download template for query data", query_template, "query_template.csv", key='text/csv')
     uploaded_file = st.file_uploader("Choose a query data file")       
     if uploaded_file is not None:
