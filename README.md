@@ -9,4 +9,4 @@ Run app.py using streamlit. Please note that app1.py also exists. However, app1.
 2) Data in the given format can be uploaded using file uploader option on the page.
 3) Once the file gets uploaded, predictions are displayed on the web page. Also a download button appears which can be clicked to download the csv file which consists of query data set with additional 'DEFAULT TENDENCY' column.
 4) If the uploaded file is not in the format of the given template, an error is displayed which says 'Query columns do not match the columns of required format as given in template. Please upload query data in the given format'. 
-5) Sidebar contains links to Github page (for codes) and Kaggle cometition page (for task description and data).
+5) Sidebar contains links to Github page (for codes) and Kaggle competition page (for task description and data).
