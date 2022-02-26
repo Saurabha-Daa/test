@@ -130,7 +130,7 @@ def main():
             values = ['NO', 'YES']
             query_data_with_prediction['DEFAULT TENDENCY'] = np.select(conditions, values)
             st.write('Default tendency of a loan applicant can be seen under column titled DEFAULT TENDENCY')
-            st.write(query_data_with_prediction['SK_ID_CURR', 'DEFAULT TENDENCY'])
+            st.write(query_data_with_prediction[['SK_ID_CURR', 'DEFAULT TENDENCY']])
             query_data_with_prediction = query_data_with_prediction.to_csv().encode('utf-8')
             st.download_button("Download query data with predictions as CSV", query_data_with_prediction, "prediction.csv", key='text/csv')
         else:
