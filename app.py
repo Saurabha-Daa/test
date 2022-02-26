@@ -72,7 +72,6 @@ filename7.close()
 #Define a function to create a pipeline for prediction
 def inference(query): 
     #Add columns titled DEBT_INCOME_RATIO, LOAN_VALUE_RATIO & LOAN_INCOME_RATIO to a copy of query data
-    #query_with_additinal_features = query.copy()    
     query['DEBT_INCOME_RATIO'] = query['AMT_ANNUITY']/query['AMT_INCOME_TOTAL']
     query['LOAN_VALUE_RATIO'] = query['AMT_CREDIT']/query['AMT_GOODS_PRICE']
     query['LOAN_INCOME_RATIO'] = query['AMT_CREDIT']/query['AMT_INCOME_TOTAL']
@@ -92,23 +91,25 @@ def inference(query):
     #Drop SK_ID_PREV
     query_bureau_previous = query_bureau_previous.drop(columns = ['SK_ID_CURR'])
 
-    #query_numerical = query_bureau_previous.select_dtypes(exclude=object)
-    #query_categorical = query_bureau_previous.select_dtypes(include=object)
-
+    #Extract numerical and categorical column names from query_bureau_previous
     columns_numerical = query_bureau_previous.select_dtypes(exclude=object).columns
     columns_categorical = query_bureau_previous.select_dtypes(include=object).columns
-
+    
+    #Imputation and standard scaling of numerical data
     query_numerical_imputed_scaled_df = imputer.transform(query_bureau_previous.select_dtypes(exclude=object))
     query_numerical_imputed_scaled_df = scaler.transform(query_numerical_imputed_scaled_df)
     query_numerical_imputed_scaled_df = pd.DataFrame(data = query_numerical_imputed_scaled_df, columns = columns_numerical)
-
+    
+    #Imputation and one hot encoding of categorical data
     query_data = imputer_constant.transform(query_bureau_previous.select_dtypes(include=object))
     query_data = ohe.transform(query_data)
     query_data = pd.DataFrame(data = query_data.toarray(), columns = columns_ohe)
-
+    
+    #Concatenate processed numerical and categorical data
     query_data = pd.concat([query_numerical_imputed_scaled_df, query_data], axis = 1)
     query_data = query_data[selected_features]
-
+    
+    #Predictions using model
     predictions = model.predict(query_data)
     return predictions
     
@@ -117,11 +118,9 @@ def main():
     st.write('LOAN DEFAULT TENDENCY PREDICTOR')
     template = query_template.to_csv().encode('utf-8')
     st.download_button("Download template for query data", template, "query_template.csv", key='text/csv')
-    uploaded_file = st.file_uploader("Choose a query data file")       
+    uploaded_file = st.file_uploader("Choose a query data file (csv only)", ['csv'])       
     if uploaded_file is not None:
         query = dataframe_optimizer(pd.read_csv(uploaded_file))
-        #query_prediction = inference(query)
-        #st.write(query_prediction)        
         columns_query = list(query.columns)
         if columns_query == columns_input:
             query_data_with_prediction = query.copy()
@@ -130,9 +129,8 @@ def main():
             conditions = [(query_data_with_prediction['LABEL'] == 0), (query_data_with_prediction['LABEL'] == 1)]
             values = ['NO', 'YES']
             query_data_with_prediction['DEFAULT TENDENCY'] = np.select(conditions, values)
-            query_data_with_prediction = query_data_with_prediction.drop(columns = ['LABEL'])
             st.write('Default tendency of a loan applicant can be seen under column titled DEFAULT TENDENCY')
-            st.write(query_data_with_prediction)
+            st.write(query_data_with_prediction['SK_ID_CURR', 'DEFAULT TENDENCY'])
             query_data_with_prediction = query_data_with_prediction.to_csv().encode('utf-8')
             st.download_button("Download query data with predictions as CSV", query_data_with_prediction, "prediction.csv", key='text/csv')
         else:
